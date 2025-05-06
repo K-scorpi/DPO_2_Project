@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   backend:
-    image: ghcr.io/${GITHUB_REPOSITORY:-your-username/your-repo}/backend:latest
+    image: ghcr.io/K-scorpi/DPO_2_Project/backend:latest
     ports:
       - "8000:8000"
     environment:
@@ -13,7 +13,7 @@ services:
       - db
 
   frontend:
-    image: ghcr.io/${GITHUB_REPOSITORY:-your-username/your-repo}/frontend:latest
+    image: ghcr.io/K-scorpi/DPO_2_Project/frontend:latest
     ports:
       - "3000:3000"
     environment:
