@@ -31,7 +31,7 @@ const ApartmentDetail = () => {
     setBookingMsg(null);
     try {
       await createBooking({
-        apartment: id,
+        apartment_id: id,
         start_date: checkIn,
         end_date: checkOut,
         guests: guests,
