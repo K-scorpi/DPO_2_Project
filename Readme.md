@@ -12,15 +12,3 @@ npm install
 # Запустите проект через Docker Compose
 cd ..
 docker-compose up --build
-
-
-# Backend
-cd backend
-poetry run black .
-poetry run isort .
-poetry run flake8 .
-poetry run mypy .
-
-# Frontend
-cd frontend
-npm run lint

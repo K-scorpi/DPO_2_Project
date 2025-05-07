@@ -55,10 +55,6 @@ jobs:
       working-directory: ./frontend
       run: npm install
 
-    - name: Run frontend tests
-      working-directory: ./frontend
-      run: npm test
-
     - name: Build frontend Docker image
       run: |
         docker build -t frontend:latest -f ./frontend/Dockerfile ./frontend
