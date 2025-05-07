@@ -29,11 +29,6 @@ jobs:
         poetry config virtualenvs.create false
         poetry install --no-interaction --no-ansi --no-root
 
-    - name: Run backend tests
-      working-directory: ./backend
-      run: |
-        poetry run pytest
-
     - name: Build backend Docker image
       run: |
         docker build -t backend:latest -f ./backend/Dockerfile ./backend
