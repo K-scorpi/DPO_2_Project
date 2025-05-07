@@ -1,4 +1,4 @@
-name: Deploy to Docker
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,8 +6,63 @@ on:
       - main
 
 jobs:
-  build:
+  backend-build:
     runs-on: ubuntu-latest
+    name: Build Backend
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'
+
+    - name: Install Poetry
+      run: |
+        pip install poetry
+
+    - name: Install dependencies
+      run: |
+        poetry config virtualenvs.create false
+        poetry install --no-interaction --no-ansi
+
+    - name: Run backend tests
+      run: |
+        poetry run pytest
+
+    - name: Build backend Docker image
+      run: |
+        docker build -t backend:latest -f ./backend/Dockerfile ./backend
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    name: Build Frontend
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '14'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run frontend tests
+      run: npm test
+
+    - name: Build frontend Docker image
+      run: |
+        docker build -t frontend:latest -f ./frontend/Dockerfile ./frontend
+
+  deploy:
+    needs: [backend-build, frontend-build]
+    runs-on: ubuntu-latest
+    name: Deploy Locally
 
     steps:
     - name: Checkout code
@@ -16,11 +71,6 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
-    - name: Build Docker images
-      uses: docker/build-push-action@v2
-      with:
-        context: .
-        push: false
-        tags: |
-          backend:latest
-          frontend:latest
+    - name: Run Docker Compose
+      run: |
+        docker-compose up -d

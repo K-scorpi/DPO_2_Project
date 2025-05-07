@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     command: gunicorn --bind 0.0.0.0:8000 my_project.wsgi:application
     volumes:
       - ./backend:/app
@@ -12,9 +14,13 @@ services:
       - DEBUG=1
       - SECRET_KEY=your_secret_key
       - DATABASE_URL=postgres://user:password@db:5432/mydatabase
+    depends_on:
+      - db
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     volumes:
       - ./frontend:/app
       - /app/node_modules

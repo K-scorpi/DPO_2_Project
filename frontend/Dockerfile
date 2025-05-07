@@ -4,12 +4,20 @@ FROM node:14
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем файлы package.json и устанавливаем зависимости
-COPY package.json .
+# Копируем package.json и package-lock.json
+COPY package.json package-lock.json ./
+
+# Устанавливаем зависимости
 RUN npm install
 
 # Копируем остальные файлы проекта
 COPY . .
 
-# Команда для запуска приложения
-CMD ["npm", "start"]
+# Сборка фронтенда
+RUN npm run build
+
+# Устанавливаем serve для запуска статических файлов
+RUN npm install -g serve
+
+# Команда для запуска фронтенда
+CMD ["serve", "-s", "build", "-l", "3000"]
