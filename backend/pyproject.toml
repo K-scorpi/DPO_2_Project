@@ -2,17 +2,15 @@
 name = "booking"
 version = "0.1.0"
 description = ""
-authors = [
-    { name = "scorpi" }
-]
-requires-python = ">=3.10"
-dependencies = [
-    "asgiref >= 3.8.1, < 4.0.0",
-    "sqlparse >= 0.5.3, < 1.0.0",
-    "django >= 5.2, < 6.0",
-    "gunicorn >= 23.0.0, < 24.0.0",
-    "psycopg2-binary >= 2.9.10, < 3.0.0"
-]
+authors = ["scorpi"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+asgiref = "^3.8.1"
+sqlparse = "^0.5.3"
+django = ">=5.2,<6.0"
+gunicorn = ">=23.0.0,<24.0.0"
+psycopg2-binary = ">=2.9.10,<3.0.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.0.0"
