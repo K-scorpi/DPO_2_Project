@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "booking"
+name = "manage"
 version = "0.1.0"
 description = ""
 authors = ["scorpi"]
