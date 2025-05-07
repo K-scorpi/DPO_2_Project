@@ -24,11 +24,13 @@ jobs:
         pip install poetry
 
     - name: Install dependencies
+      working-directory: ./backend
       run: |
         poetry config virtualenvs.create false
         poetry install --no-interaction --no-ansi
 
     - name: Run backend tests
+      working-directory: ./backend
       run: |
         poetry run pytest
 
@@ -50,9 +52,11 @@ jobs:
         node-version: '14'
 
     - name: Install dependencies
+      working-directory: ./frontend
       run: npm install
 
     - name: Run frontend tests
+      working-directory: ./frontend
       run: npm test
 
     - name: Build frontend Docker image
