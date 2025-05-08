@@ -44,7 +44,7 @@ const Navbar = () => {
       <MenuItem disabled>{user?.email}</MenuItem>
       <MenuItem component={RouterLink} to="/profile" onClick={handleClose}>Профиль</MenuItem>
       <MenuItem component={RouterLink} to="/bookings" onClick={handleClose}>Мои бронирования</MenuItem>
-      <MenuItem component={RouterLink} to="/add-apartment" onClick={handleClose} sx={{ color: 'primary.main', fontWeight: 600 }}>Сдать апартамент</MenuItem>
+      <MenuItem component={RouterLink} to="/add-apartment" onClick={handleClose} sx={{ color: 'primary.main', fontWeight: 600 }}>Сдать жилье</MenuItem>
       <MenuItem onClick={handleLogout}>Выйти</MenuItem>
     </Menu>
   );
@@ -75,7 +75,7 @@ const Navbar = () => {
         <>
           <MenuItem component={RouterLink} to="/profile" onClick={handleMobileClose}>Профиль</MenuItem>
           <MenuItem component={RouterLink} to="/bookings" onClick={handleMobileClose}>Мои бронирования</MenuItem>
-          <MenuItem component={RouterLink} to="/add-apartment" onClick={handleMobileClose} sx={{ color: 'primary.main', fontWeight: 600 }}>Сдать апартамент</MenuItem>
+          <MenuItem component={RouterLink} to="/add-apartment" onClick={handleMobileClose} sx={{ color: 'primary.main', fontWeight: 600 }}>Сдать жилье</MenuItem>
           <MenuItem onClick={handleLogout}>Выйти</MenuItem>
         </>
       ) : (
@@ -115,7 +115,7 @@ const Navbar = () => {
                   to="/add-apartment"
                   sx={{ fontWeight: 600, ml: 1 }}
                 >
-                  Сдать апартамент
+                  Сдать жилье
                 </Button>
                 <IconButton onClick={handleMenu} sx={{ p: 0, ml: 1 }}>
                   <Avatar src={user?.avatar}>

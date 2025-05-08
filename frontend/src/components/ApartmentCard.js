@@ -24,6 +24,14 @@ const ApartmentCard = ({ apartment }) => {
   const reviewsCount = apartment.reviews_count || Math.floor(Math.random() * 20 + 1);
   const rating = apartment.average_rating || (Math.random() * 2 + 3).toFixed(1);
 
+  const getMainImage = () => {
+    if (apartment.images && apartment.images.length > 0) {
+      const main = apartment.images.find(img => img.is_main);
+      return (main && main.image) || apartment.images[0].image;
+    }
+    return '/placeholders/1.jpeg';
+  };
+
   return (
     <Card
       component={RouterLink}
@@ -31,7 +39,8 @@ const ApartmentCard = ({ apartment }) => {
       sx={{
         borderRadius: 4,
         boxShadow: 3,
-        height: '100%',
+        height: 440,
+        width: 360,
         display: 'flex',
         flexDirection: 'column',
         transition: 'transform 0.22s, box-shadow 0.22s',
@@ -40,9 +49,6 @@ const ApartmentCard = ({ apartment }) => {
           boxShadow: 10,
           cursor: 'pointer',
         },
-        minWidth: 360,
-        maxWidth: 460,
-        width: '100%',
         textDecoration: 'none',
         color: 'inherit',
         position: 'relative',
@@ -52,14 +58,9 @@ const ApartmentCard = ({ apartment }) => {
       <Box sx={{ position: 'relative' }}>
         <CardMedia
           component="img"
-          height="260"
-          image={
-            apartment.images && apartment.images.length > 0 && apartment.images[0].image
-              ? apartment.images[0].image
-              : '/placeholders/1.jpeg'
-          }
+          image={getMainImage()}
           alt={apartment.title}
-          sx={{ borderRadius: 4, objectFit: 'cover', minHeight: 260 }}
+          sx={{ borderRadius: 4, objectFit: 'cover', width: '100%', height: 180 }}
         />
         <Stack direction="row" spacing={1} sx={{ position: 'absolute', top: 16, left: 16 }}>
           <Chip label="Выбор гостей" color="primary" size="small" sx={{ fontWeight: 'bold' }} />

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { getApartment, createBooking } from '../services/api';
 import { Container, Typography, Box, Button, TextField, Alert, Modal } from '@mui/material';
@@ -78,8 +78,8 @@ const ApartmentDetail = () => {
                   src={src}
                   alt={apartment.title}
                   style={{
-                    width: 400,
-                    height: 260,
+                    width: 700,
+                    height: 420,
                     objectFit: 'cover',
                     borderRadius: 12,
                     boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
@@ -150,5 +150,66 @@ const ApartmentDetail = () => {
     </Container>
   );
 };
+
+// --- WaveBackground START ---
+
+const WaveBackground = () => {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    let width = window.innerWidth;
+    let height = 200;
+    let waves = [
+      { A: 20, T: 600, phi: 0, speed: 0.015, color: 'rgba(33,150,243,0.5)' },
+      { A: 15, T: 400, phi: Math.PI / 2, speed: 0.02, color: 'rgba(33,150,243,0.3)' },
+      { A: 10, T: 300, phi: Math.PI, speed: 0.025, color: 'rgba(33,150,243,0.2)' },
+    ];
+    let animationId;
+
+    const resize = () => {
+      width = window.innerWidth;
+      canvas.width = width;
+      canvas.height = height;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    function drawWave({ A, T, phi, color }, t) {
+      ctx.beginPath();
+      ctx.moveTo(0, height);
+      for (let x = 0; x <= width; x += 2) {
+        let y = A * Math.sin((2 * Math.PI * (x / T)) + phi + t) + height / 2;
+        ctx.lineTo(x, y);
+      }
+      ctx.lineTo(width, height);
+      ctx.closePath();
+      ctx.fillStyle = color;
+      ctx.fill();
+    }
+
+    function animate(t = 0) {
+      ctx.clearRect(0, 0, width, height);
+      waves.forEach(wave => {
+        drawWave(wave, t * wave.speed);
+      });
+      animationId = requestAnimationFrame(animate);
+    }
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(animationId);
+    };
+  }, []);
+
+  return (
+    <div style={{ width: '100%', overflow: 'hidden', background: 'transparent', marginTop: 48 }}>
+      <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: 200 }} height={200} />
+    </div>
+  );
+};
+// --- WaveBackground END ---
 
 export default ApartmentDetail; 
