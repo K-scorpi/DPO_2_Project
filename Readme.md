@@ -1,13 +1,15 @@
 # Установите Poetry
 curl -sSL https://install.python-poetry.org | python3 -
 
-# Установите зависимости backend
+# Установка и запуск зависимости backend 
 cd backend
 poetry install
+poetry run python3 manage.py runserver
 
-# Установите зависимости frontend
+# Установка и запуск зависимости frontend
 cd ../frontend
 npm install
+npm start
 
 # Запустите проект через Docker Compose
 cd ..

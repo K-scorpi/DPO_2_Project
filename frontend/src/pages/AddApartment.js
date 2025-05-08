@@ -9,12 +9,15 @@ const AddApartment = () => {
   const [price, setPrice] = useState('');
   const [location, setLocation] = useState('');
   const [images, setImages] = useState([]);
+  const [mainImageIdx, setMainImageIdx] = useState(0);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
 
   const handleImageChange = (e) => {
-    setImages(Array.from(e.target.files));
+    const files = Array.from(e.target.files);
+    setImages(files);
+    setMainImageIdx(0);
   };
 
   const handleSubmit = async (e) => {
@@ -25,6 +28,10 @@ const AddApartment = () => {
       setError('Пожалуйста, заполните все поля');
       return;
     }
+    if (images.length === 0) {
+      setError('Загрузите хотя бы одно фото');
+      return;
+    }
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', description);
@@ -33,6 +40,7 @@ const AddApartment = () => {
     images.forEach((img) => {
       formData.append('images', img);
     });
+    formData.append('main_image_index', mainImageIdx);
     try {
       await addApartment(formData);
       setSuccess('Апартамент успешно добавлен!');
@@ -55,9 +63,20 @@ const AddApartment = () => {
           <input type="file" hidden multiple accept="image/*" onChange={handleImageChange} />
         </Button>
         {images.length > 0 && (
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
             {images.map((img, idx) => (
-              <Typography key={idx} variant="body2">{img.name}</Typography>
+              <Box key={idx} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <input
+                  type="radio"
+                  name="mainImage"
+                  checked={mainImageIdx === idx}
+                  onChange={() => setMainImageIdx(idx)}
+                  style={{ accentColor: '#1976d2' }}
+                />
+                <Typography variant="body2">
+                  {img.name} {mainImageIdx === idx && '(главное)'}
+                </Typography>
+              </Box>
             ))}
           </Box>
         )}
