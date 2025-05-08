@@ -21,8 +21,17 @@ class ApartmentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         apartment = serializer.save(host=self.request.user)
         images = self.request.FILES.getlist('images')
-        for img in images:
-            ApartmentImage.objects.create(apartment=apartment, image=img)
+        main_image_index = self.request.data.get('main_image_index')
+        try:
+            main_image_index = int(main_image_index)
+        except (TypeError, ValueError):
+            main_image_index = 0
+        for idx, img in enumerate(images):
+            ApartmentImage.objects.create(
+                apartment=apartment,
+                image=img,
+                is_main=(idx == main_image_index)
+            )
 
     @action(detail=True, methods=['post'])
     def book(self, request, pk=None):
