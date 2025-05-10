@@ -88,13 +88,28 @@ const Reviews = ({ apartmentId, user }) => {
             <Typography color="text.secondary">Пока нет отзывов</Typography>
           ) : (
             reviews.map(r => (
-              <Box key={r.id} sx={{ p: 2, borderRadius: 2, bgcolor: 'grey.50' }}>
-                <Stack direction="row" alignItems="center" spacing={1}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>{r.name || r.user_name || 'Гость'}</Typography>
-                  <Typography variant="caption" color="text.secondary">{r.date || r.created_at?.slice(0,10)}</Typography>
-                  <Rating value={r.rating} size="small" readOnly sx={{ ml: 1 }} />
+              <Box
+                key={r.id}
+                sx={theme => ({
+                  p: { xs: 1.5, sm: 2 },
+                  borderRadius: 2,
+                  bgcolor: theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50',
+                  color: theme.palette.mode === 'dark' ? '#fff' : '#222',
+                  fontSize: { xs: '1rem', sm: '1.1rem' },
+                  boxShadow: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 1,
+                  wordBreak: 'break-word',
+                  minWidth: 0,
+                })}
+              >
+                <Stack direction={{ xs: 'column', sm: 'row' }} alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={1}>
+                  <Typography variant="subtitle2" sx={theme => ({ fontWeight: 600, color: theme.palette.mode === 'dark' ? '#fff' : '#444', fontSize: { xs: '1.1rem', sm: '1.2rem' } })}>{r.name || r.user_name || 'Гость'}</Typography>
+                  <Typography variant="caption" sx={theme => ({ color: theme.palette.mode === 'dark' ? 'grey.400' : 'text.secondary', mb: { xs: 0.5, sm: 0 } })}>{r.date || r.created_at?.slice(0,10)}</Typography>
+                  <Rating value={r.rating} size="small" readOnly sx={{ ml: { xs: 0, sm: 1 }, mb: { xs: 0.5, sm: 0 } }} />
                 </Stack>
-                <Typography variant="body2" sx={{ mt: 1 }}>{r.comment}</Typography>
+                <Typography variant="body2" sx={theme => ({ mt: 0.5, color: theme.palette.mode === 'dark' ? '#fff' : '#222', fontSize: { xs: '1rem', sm: '1.1rem' } })}>{r.comment}</Typography>
               </Box>
             ))
           )}
