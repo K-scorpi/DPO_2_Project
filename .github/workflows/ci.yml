@@ -3,7 +3,7 @@ name: CI/CD Pipeline
 on:
   push:
     branches:
-      - main
+      - '**'  # Any branch
 
 jobs:
   backend-build:
@@ -42,6 +42,7 @@ jobs:
         chmod 600 ~/.ssh/known_hosts
 
     - name: Transfer backend image to server
+      if: github.ref == 'refs/heads/main'
       run: |
         sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no backend.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
 
@@ -75,6 +76,7 @@ jobs:
         chmod 600 ~/.ssh/known_hosts
 
     - name: Transfer frontend image to server
+      if: github.ref == 'refs/heads/main'
       run: |
         sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no frontend.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
 
@@ -113,6 +115,7 @@ jobs:
 
   deploy-to-server:
     needs: local-deploy
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     name: Deploy to Production Server
 
