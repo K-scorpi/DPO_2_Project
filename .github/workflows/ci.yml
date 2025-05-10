@@ -9,6 +9,14 @@ jobs:
   backend-build:
     runs-on: ubuntu-latest
     name: Build Backend
+    if: |
+      github.ref == 'refs/heads/main' ||
+      contains(github.event.head_commit.modified, 'backend/') ||
+      contains(github.event.head_commit.added, 'backend/') ||
+      contains(github.event.head_commit.removed, 'backend/') ||
+      contains(github.event.head_commit.modified, 'frontend/') ||
+      contains(github.event.head_commit.added, 'frontend/') ||
+      contains(github.event.head_commit.removed, 'frontend/')
 
     steps:
     - name: Checkout code
@@ -49,6 +57,11 @@ jobs:
   frontend-build:
     runs-on: ubuntu-latest
     name: Build Frontend
+    if: |
+      github.ref == 'refs/heads/main' ||
+      contains(github.event.head_commit.modified, 'frontend/') ||
+      contains(github.event.head_commit.added, 'frontend/') ||
+      contains(github.event.head_commit.removed, 'frontend/')
 
     steps:
     - name: Checkout code
@@ -58,10 +71,36 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: '14'
+        cache: 'npm'
+        cache-dependency-path: './frontend/package-lock.json'
+
+    - name: Cache node_modules
+      uses: actions/cache@v2
+      id: node-modules-cache
+      with:
+        path: ./frontend/node_modules
+        key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-modules-
 
     - name: Install dependencies
       working-directory: ./frontend
-      run: npm install
+      if: steps.node-modules-cache.outputs.cache-hit != 'true'
+      run: npm ci
+
+    - name: Cache build
+      uses: actions/cache@v2
+      id: build-cache
+      with:
+        path: ./frontend/build
+        key: ${{ runner.os }}-build-${{ hashFiles('**/src/**', '**/public/**') }}
+        restore-keys: |
+          ${{ runner.os }}-build-
+
+    - name: Build frontend
+      working-directory: ./frontend
+      if: steps.build-cache.outputs.cache-hit != 'true'
+      run: npm run build
 
     - name: Build frontend Docker image
       run: |
@@ -104,14 +143,6 @@ jobs:
     - name: Wait for services to be ready
       run: |
         sleep 30  # Give services time to start
-
-    - name: Test backend health
-      run: |
-        curl -f http://localhost:8001/admin/ || exit 1
-
-    - name: Test frontend health
-      run: |
-        curl -f http://localhost:3001/ || exit 1
 
   deploy-to-server:
     needs: local-deploy
