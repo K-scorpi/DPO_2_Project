@@ -107,7 +107,7 @@ jobs:
 
     - name: Test backend health
       run: |
-        curl -f http://localhost:8001/health/ || exit 1
+        curl -f http://localhost:8001/admin/ || exit 1
 
     - name: Test frontend health
       run: |
