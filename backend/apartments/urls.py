@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 from profiles import urls as profiles_urls
 from rest_framework.routers import DefaultRouter
-from .views import ApartmentViewSet, BookingViewSet, ReviewViewSet
+from .views import ApartmentViewSet, BookingViewSet, ReviewViewSet, ApartmentReviewListCreate
 from auth_app.views import CustomTokenObtainPairView
 
 router = DefaultRouter()
@@ -16,5 +16,6 @@ urlpatterns = [
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('profile/', include('profiles.urls')),
+    path('apartments/<int:apartment_id>/reviews/', ApartmentReviewListCreate.as_view(), name='apartment-reviews'),
     path('', include(router.urls)),
 ] 

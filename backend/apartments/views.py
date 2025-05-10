@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from rest_framework import viewsets, permissions, status
+from rest_framework import viewsets, permissions, status, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -122,3 +122,15 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(guest=self.request.user)
+
+class ApartmentReviewListCreate(generics.ListCreateAPIView):
+    serializer_class = ReviewSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        apartment_id = self.kwargs['apartment_id']
+        return Review.objects.filter(apartment_id=apartment_id).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        apartment_id = self.kwargs['apartment_id']
+        serializer.save(guest=self.request.user, apartment_id=apartment_id)

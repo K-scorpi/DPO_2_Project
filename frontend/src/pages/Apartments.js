@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Grid, Typography, Box, TextField, InputAdornment, IconButton, Slider, MenuItem, Checkbox, FormControlLabel, FormGroup, Button, Dialog, DialogTitle, DialogContent, DialogActions, Divider } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ApartmentCard from '../components/ApartmentCard';
 import CategoriesTabs from '../components/CategoriesTabs';
 import { getApartments } from '../services/api';
+import EmptyState from '../components/EmptyState';
+import ScrollToTopButton from '../components/ScrollToTopButton';
 
 const allAmenities = [
   { key: 'wifi', label: 'Wi-Fi' },
@@ -23,6 +25,8 @@ const Apartments = () => {
   const [onlySuperhost, setOnlySuperhost] = useState(false);
   const [selectedAmenities, setSelectedAmenities] = useState([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [showFiltersBtn, setShowFiltersBtn] = useState(true);
+  const lastScrollY = useRef(0);
 
   useEffect(() => {
     const fetchApartments = async () => {
@@ -42,6 +46,24 @@ const Apartments = () => {
       }
     };
     fetchApartments();
+  }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY < 100) {
+        setShowFiltersBtn(true);
+        lastScrollY.current = window.scrollY;
+        return;
+      }
+      if (window.scrollY > lastScrollY.current) {
+        setShowFiltersBtn(false); // скроллим вниз — скрыть
+      } else {
+        setShowFiltersBtn(true); // скроллим вверх — показать
+      }
+      lastScrollY.current = window.scrollY;
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   // Список городов для фильтра
@@ -143,36 +165,45 @@ const Apartments = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Button variant="outlined" color="primary" onClick={() => setFiltersOpen(true)}>
-          Фильтры
-        </Button>
-      </Box>
+      {showFiltersBtn && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+          <Button variant="outlined" color="primary" onClick={() => setFiltersOpen(true)}>
+            Фильтры
+          </Button>
+        </Box>
+      )}
       <Dialog open={filtersOpen} onClose={() => setFiltersOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>Фильтры</DialogTitle>
         <Divider />
         <DialogContent>{FiltersUI}</DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ justifyContent: 'space-between' }}>
+          <Button onClick={() => { setSearch(''); setCategory(0); setPriceRange([0, 10000]); setCity(''); setOnlyNew(false); setOnlySuperhost(false); setSelectedAmenities([]); }} color="secondary">Сбросить фильтры</Button>
           <Button onClick={() => setFiltersOpen(false)} color="primary">Показать</Button>
         </DialogActions>
       </Dialog>
       <CategoriesTabs value={category} onChange={handleCategoryChange} />
-      <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: 3 }}>
+      <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 'bold', mb: { xs: 2, sm: 3 } }}>
         Жилье
       </Typography>
       {loading ? (
         <Typography>Загрузка...</Typography>
       ) : error ? (
-        <Typography color="error">{error}</Typography>
+        <Box sx={{ textAlign: 'center', mt: 4 }}>
+          <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>
+          <Button variant="outlined" onClick={() => window.location.reload()}>Повторить</Button>
+        </Box>
+      ) : filtered.length === 0 ? (
+        <EmptyState text="Ничего не найдено по вашему запросу" />
       ) : (
-        <Grid container spacing={4} justifyContent="flex-start">
+        <Grid container spacing={{ xs: 2, sm: 4 }} justifyContent="flex-start">
           {filtered.map((apartment) => (
-            <Grid item xs={12} sm={6} md={4} key={apartment.id} sx={{ display: 'flex', justifyContent: 'center' }}>
+            <Grid item xs={12} sm={6} md={4} lg={3} key={apartment.id} sx={{ display: 'flex', justifyContent: 'center' }}>
               <ApartmentCard apartment={apartment} />
             </Grid>
           ))}
         </Grid>
       )}
+      <ScrollToTopButton />
     </Container>
   );
 };

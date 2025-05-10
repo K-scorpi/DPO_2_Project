@@ -18,9 +18,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  DialogContentText
+  DialogContentText,
+  Rating,
+  TextField
 } from '@mui/material';
-import { getBookings, cancelBooking } from '../services/api';
+import { getBookings, cancelBooking, addReview } from '../services/api';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import CancelIcon from '@mui/icons-material/Cancel';
 import InfoIcon from '@mui/icons-material/Info';
@@ -32,6 +34,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { styled } from '@mui/material/styles';
 import Slider from 'react-slick';
+import { useToast } from '../utils/ToastContext';
 
 const statusColors = {
   confirmed: 'success',
@@ -53,6 +56,13 @@ const Bookings = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [detailBooking, setDetailBooking] = useState(null);
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [reviewBooking, setReviewBooking] = useState(null);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewedIds, setReviewedIds] = useState([]);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -104,6 +114,31 @@ const Bookings = () => {
     setDetailBooking(null);
   };
 
+  const canReview = (booking) => {
+    return booking.status === 'confirmed' && new Date(booking.end_date) < new Date() && !reviewedIds.includes(booking.id);
+  };
+
+  const handleReviewClick = (booking) => {
+    setReviewBooking(booking);
+    setReviewText('');
+    setReviewRating(5);
+    setReviewDialogOpen(true);
+  };
+
+  const handleReviewSubmit = async () => {
+    setReviewSubmitting(true);
+    try {
+      await addReview(reviewBooking.apartment.id, { rating: reviewRating, comment: reviewText });
+      setReviewedIds([...reviewedIds, reviewBooking.id]);
+      setReviewDialogOpen(false);
+      showToast('Спасибо за ваш отзыв!', 'success');
+    } catch (e) {
+      showToast('Ошибка при отправке отзыва', 'error');
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 200 }}>
@@ -139,7 +174,6 @@ const Bookings = () => {
               const photo = apt.images?.[0]?.image || apt.image || '';
               const address = apt.address || apt.city || apt.location || '';
               const canCancel = booking.status === 'confirmed';
-              const canReview = booking.status === 'confirmed' && new Date(booking.end_date) < new Date();
               return (
                 <TableRow key={booking.id} hover>
                   <TableCell>{apt.title}</TableCell>
@@ -177,14 +211,15 @@ const Bookings = () => {
                         Отменить
                       </Button>
                     )}
-                    {canReview && (
+                    {canReview(booking) && (
                       <Button
                         variant="outlined"
                         color="primary"
                         size="small"
                         startIcon={<RateReviewIcon />}
                         sx={{ mt: 0.5 }}
-                        disabled
+                        onClick={() => handleReviewClick(booking)}
+                        disabled={reviewedIds.includes(booking.id)}
                       >
                         Оставить отзыв
                       </Button>
@@ -338,6 +373,30 @@ const Bookings = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDetailClose}>Закрыть</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={reviewDialogOpen} onClose={() => setReviewDialogOpen(false)}>
+        <DialogTitle>Оставить отзыв</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <Rating value={reviewRating} onChange={(_, v) => setReviewRating(v)} />
+            <TextField
+              label="Ваш отзыв"
+              value={reviewText}
+              onChange={e => setReviewText(e.target.value)}
+              multiline
+              minRows={2}
+              required
+              fullWidth
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReviewDialogOpen(false)} color="secondary">Отмена</Button>
+          <Button onClick={handleReviewSubmit} variant="contained" disabled={reviewSubmitting || !reviewText.trim()}>
+            Отправить
+          </Button>
         </DialogActions>
       </Dialog>
     </Container>

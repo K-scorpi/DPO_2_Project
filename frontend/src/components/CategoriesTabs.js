@@ -23,8 +23,22 @@ const categories = [
 
 function CategoriesTabs({ value, onChange }) {
   return (
-    <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-      <Tabs value={value} onChange={onChange} variant="scrollable" scrollButtons="auto">
+    <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2, overflowX: 'auto' }}>
+      <Tabs 
+        value={value} 
+        onChange={onChange} 
+        variant="scrollable" 
+        scrollButtons="auto"
+        allowScrollButtonsMobile
+        sx={{
+          minHeight: { xs: 48, sm: 64 },
+          '& .MuiTab-root': {
+            minHeight: { xs: 48, sm: 64 },
+            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+            px: { xs: 1, sm: 2 }
+          }
+        }}
+      >
         {categories.map((cat, idx) => (
           <Tab key={cat.label} icon={cat.icon} label={cat.label} />
         ))}

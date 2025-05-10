@@ -126,4 +126,8 @@ export const updateAvatar = async (formData) => {
     return api.put('/profile/avatar/', formData);
 };
 
+// Review endpoints
+export const getReviews = (apartmentId) => api.get(`/apartments/${apartmentId}/reviews/`);
+export const addReview = (apartmentId, data) => api.post(`/apartments/${apartmentId}/reviews/`, data);
+
 export default api; 

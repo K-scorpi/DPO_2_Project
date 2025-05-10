@@ -7,19 +7,30 @@ import * as THREE from 'three';
 const Home = () => {
   return (
     <Container maxWidth="md" sx={{ py: 8, textAlign: 'center' }}>
-      <Typography variant="h2" component="h1" gutterBottom>
+      <Typography 
+        variant="h2" 
+        component="h1" 
+        gutterBottom
+        sx={{ fontSize: { xs: '2rem', sm: '3rem', md: '3.75rem' }, wordBreak: 'break-word' }}
+      >
         Добро пожаловать в систему бронирования жилья
       </Typography>
-      <Typography variant="h5" color="text.secondary" paragraph>
+      <Typography 
+        variant="h5" 
+        color="text.secondary" 
+        paragraph
+        sx={{ fontSize: { xs: '1.1rem', sm: '1.5rem' } }}
+      >
         Найдите идеальное место для вашего отдыха
       </Typography>
-      <Box sx={{ mt: 4 }}>
+      <Box sx={{ mt: 4, display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, alignItems: 'center', justifyContent: 'center', gap: 2 }}>
         <Button
           component={RouterLink}
           to="/apartments"
           variant="contained"
           size="large"
-          sx={{ mr: 2 }}
+          fullWidth
+          sx={{ maxWidth: { xs: '100%', sm: 240 } }}
         >
           Посмотреть жилье
         </Button>
@@ -28,6 +39,8 @@ const Home = () => {
           to="/bookings"
           variant="outlined"
           size="large"
+          fullWidth
+          sx={{ maxWidth: { xs: '100%', sm: 240 } }}
         >
           Мои бронирования
         </Button>

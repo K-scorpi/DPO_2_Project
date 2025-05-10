@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { getApartment, createBooking } from '../services/api';
-import { Container, Typography, Box, Button, TextField, Alert, Modal } from '@mui/material';
+import { Container, Typography, Box, Button, TextField, Alert, Modal, Paper, Grid } from '@mui/material';
 import Slider from 'react-slick';
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
+import { useToast } from '../utils/ToastContext';
+import Reviews from '../components/Reviews';
 
 const placeholderImages = [1, 2, 3].map(n => `/placeholders/${n}.jpeg`);
 
@@ -19,6 +21,11 @@ const ApartmentDetail = () => {
   const [guests, setGuests] = useState(1);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxImg, setLightboxImg] = useState(null);
+  const { showToast } = useToast();
+  let user = null;
+  try {
+    user = JSON.parse(localStorage.getItem('user'));
+  } catch (e) {}
 
   useEffect(() => {
     getApartment(id)
@@ -37,13 +44,16 @@ const ApartmentDetail = () => {
         guests: guests,
       });
       setBookingMsg('Бронирование успешно!');
+      showToast('Бронирование успешно!', 'success');
     } catch (e) {
       if (e.response && e.response.status === 403) {
         window.location.href = '/login';
       } else if (e.response && e.response.data && e.response.data.start_date) {
         setBookingMsg('Ошибка: ' + e.response.data.start_date);
+        showToast('Ошибка: ' + e.response.data.start_date, 'error');
       } else {
         setBookingMsg('Ошибка бронирования');
+        showToast('Ошибка бронирования', 'error');
       }
     }
   };
@@ -68,85 +78,103 @@ const ApartmentDetail = () => {
   };
 
   return (
-    <Container sx={{ mt: 4 }}>
-      <Box>
-        <Box sx={{ mb: 2 }}>
-          <Slider {...sliderSettings}>
-            {images.map((src, idx) => (
-              <Box key={idx} sx={{ display: 'flex', justifyContent: 'center' }}>
-                <img
-                  src={src}
-                  alt={apartment.title}
-                  style={{
-                    width: 700,
-                    height: 420,
-                    objectFit: 'cover',
-                    borderRadius: 12,
-                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-                    cursor: 'zoom-in',
-                    transition: 'transform 0.2s',
-                  }}
-                  onClick={() => { setLightboxImg(src); setLightboxOpen(true); }}
-                  onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04)'}
-                  onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
-                />
-              </Box>
-            ))}
-          </Slider>
-        </Box>
-        <Modal open={lightboxOpen} onClose={() => setLightboxOpen(false)}>
-          <Box sx={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            bgcolor: 'rgba(0,0,0,0.85)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1300,
-          }}>
-            <img
-              src={lightboxImg}
-              alt="Фото апартамента"
-              style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 16, boxShadow: '0 4px 32px rgba(0,0,0,0.25)' }}
-              onClick={() => setLightboxOpen(false)}
-            />
+    <Container sx={{ mt: { xs: 2, sm: 4 } }}>
+      <Grid container spacing={4} justifyContent="center">
+        <Grid item xs={12} md={7}>
+          <Box sx={{ mb: 2, maxWidth: 700, mx: 'auto' }}>
+            <Slider {...sliderSettings}>
+              {images.map((src, idx) => (
+                <Box key={idx} sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Box
+                    component="img"
+                    src={src}
+                    alt={apartment.title}
+                    sx={{
+                      width: { xs: 320, sm: 480, md: 700 },
+                      height: { xs: 200, sm: 300, md: 420 },
+                      objectFit: 'cover',
+                      borderRadius: 2,
+                      boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                      cursor: 'zoom-in',
+                      transition: 'transform 0.2s',
+                      maxWidth: '100%',
+                    }}
+                    onClick={() => { setLightboxImg(src); setLightboxOpen(true); }}
+                    onMouseOver={e => e.currentTarget.style.transform = 'scale(1.04)'}
+                    onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}
+                  />
+                </Box>
+              ))}
+            </Slider>
           </Box>
-        </Modal>
-        <Typography variant="h4" sx={{ mt: 2 }}>{apartment.title}</Typography>
-        <Typography variant="subtitle1">{apartment.location}</Typography>
-        <Typography variant="body1" sx={{ mb: 2 }}>{apartment.description}</Typography>
-        <Typography variant="h5" sx={{ mb: 2 }}>{apartment.price} руб./ночь</Typography>
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-          <TextField
-            label="Дата заезда"
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            value={checkIn}
-            onChange={e => setCheckIn(e.target.value)}
-          />
-          <TextField
-            label="Дата выезда"
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            value={checkOut}
-            onChange={e => setCheckOut(e.target.value)}
-          />
-          <TextField
-            label="Гостей"
-            type="number"
-            InputLabelProps={{ shrink: true }}
-            value={guests}
-            onChange={e => setGuests(Math.max(1, parseInt(e.target.value) || 1))}
-            inputProps={{ min: 1 }}
-            sx={{ width: 120 }}
+          <Typography variant="h4" sx={{ mt: 2, fontSize: { xs: '1.5rem', sm: '2rem' } }}>{apartment.title}</Typography>
+          <Typography variant="subtitle1" color="text.secondary">{apartment.location}</Typography>
+          <Typography variant="body1" sx={{ mb: 2, mt: 1 }}>{apartment.description}</Typography>
+        </Grid>
+        <Grid item xs={12} md={5}>
+          <Paper elevation={3} sx={{ maxWidth: 380, mx: { xs: 'auto', md: 0 }, mt: { xs: 3, md: 0 }, p: 3, borderRadius: 3, position: { md: 'sticky' }, top: { md: 32 } }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700 }}>{Number(apartment.price).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} руб./ночь</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <TextField
+                label="Дата заезда"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={checkIn}
+                onChange={e => setCheckIn(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="Дата выезда"
+                type="date"
+                InputLabelProps={{ shrink: true }}
+                value={checkOut}
+                onChange={e => setCheckOut(e.target.value)}
+                fullWidth
+              />
+              <TextField
+                label="Гостей"
+                type="number"
+                InputLabelProps={{ shrink: true }}
+                value={guests}
+                onChange={e => setGuests(Math.max(1, parseInt(e.target.value) || 1))}
+                inputProps={{ min: 1 }}
+                fullWidth
+              />
+              <Button
+                variant="contained"
+                onClick={handleBooking}
+                sx={{ width: '100%', alignSelf: 'center', mt: 1 }}
+              >
+                Забронировать
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
+      <Reviews apartmentId={id} user={user} />
+      <Modal open={lightboxOpen} onClose={() => setLightboxOpen(false)}>
+        <Box sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100vw',
+          height: '100vh',
+          bgcolor: 'rgba(0,0,0,0.85)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1300,
+        }}>
+          <img
+            src={lightboxImg}
+            alt="Фото апартамента"
+            style={{ maxWidth: '90vw', maxHeight: '90vh', borderRadius: 16, boxShadow: '0 4px 32px rgba(0,0,0,0.25)' }}
+            onClick={() => setLightboxOpen(false)}
           />
         </Box>
-        <Button variant="contained" onClick={handleBooking}>Забронировать</Button>
-        {bookingMsg && <Alert sx={{ mt: 2 }} severity={bookingMsg.includes('успешно') ? 'success' : 'error'}>{bookingMsg}</Alert>}
-      </Box>
+      </Modal>
     </Container>
   );
 };

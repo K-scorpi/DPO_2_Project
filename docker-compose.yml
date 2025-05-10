@@ -13,9 +13,8 @@ services:
     environment:
       - DEBUG=1
       - SECRET_KEY=your_secret_key
-    #  - DATABASE_URL=postgres://user:password@db:5432/mydatabase
-    #depends_on:
-    #  - db
+    networks:
+      - appnet
 
   frontend:
     build:
@@ -33,15 +32,9 @@ services:
       - WDS_SOCKET_PORT=3001
     depends_on:
       - backend
-#
-#  db:
-#    image: postgres:13
-#    volumes:
-#      - postgres_data:/var/lib/postgresql/data/
-#    environment:
-#      - POSTGRES_DB=mydatabase
-#      - POSTGRES_USER=user
-#      - POSTGRES_PASSWORD=password
+    networks:
+      - appnet
 
-#volumes:
-#  postgres_data:
+networks:
+  appnet:
+    driver: bridge

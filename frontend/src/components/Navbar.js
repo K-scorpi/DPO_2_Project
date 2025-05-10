@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AppBar, Toolbar, Typography, Button, Box, IconButton, Menu, MenuItem, Avatar, useMediaQuery } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, Box, IconButton, Menu, MenuItem, Avatar, useMediaQuery, Fade } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useTheme } from '@mui/material/styles';
@@ -69,8 +69,17 @@ const Navbar = () => {
       onClose={handleMobileClose}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+      TransitionComponent={Fade}
     >
-      <MenuItem component={RouterLink} to="/apartments" onClick={handleMobileClose}>Апартаменты</MenuItem>
+      {token && user && (
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 2, py: 1 }}>
+          <Avatar src={user?.avatar} sx={{ width: 32, height: 32 }}>
+            {!user?.avatar && (user?.first_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || '?')}
+          </Avatar>
+          <Typography variant="body2" noWrap>{user?.email}</Typography>
+        </Box>
+      )}
+      <MenuItem component={RouterLink} to="/apartments" onClick={handleMobileClose}>Жилье</MenuItem>
       {token && user ? (
         <>
           <MenuItem component={RouterLink} to="/profile" onClick={handleMobileClose}>Профиль</MenuItem>
@@ -88,7 +97,7 @@ const Navbar = () => {
   );
 
   return (
-    <AppBar position="static" color="primary">
+    <AppBar position="sticky" color="primary">
       <Toolbar sx={{ justifyContent: 'space-between' }}>
         <Typography variant="h6" component={RouterLink} to="/" sx={{ color: '#fff', textDecoration: 'none' }}>
           BOOKING APP
@@ -105,7 +114,7 @@ const Navbar = () => {
           </>
         ) : (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Button color="inherit" component={RouterLink} to="/apartments">Апартаменты</Button>
+            <Button color="inherit" component={RouterLink} to="/apartments">Жилье</Button>
             {token && user ? (
               <>
                 <Button
