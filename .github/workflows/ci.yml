@@ -72,6 +72,9 @@ jobs:
       with:
         node-version: '18'
 
+    - name: Disable CI env for build
+      run: unset CI
+
     - name: Install dependencies
       working-directory: ./frontend
       run: npm ci
