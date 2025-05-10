@@ -34,11 +34,6 @@ jobs:
         docker build -t backend:latest -f ./backend/Dockerfile ./backend
         docker save backend:latest > backend.tar
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.4
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
     - name: Add known hosts
       run: |
         mkdir -p ~/.ssh
@@ -48,7 +43,7 @@ jobs:
 
     - name: Transfer backend image to server
       run: |
-        scp -v -P 2224 -o StrictHostKeyChecking=no backend.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
+        sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no backend.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -72,11 +67,6 @@ jobs:
         docker build -t frontend:latest -f ./frontend/Dockerfile ./frontend
         docker save frontend:latest > frontend.tar
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.4
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
     - name: Add known hosts
       run: |
         mkdir -p ~/.ssh
@@ -86,7 +76,7 @@ jobs:
 
     - name: Transfer frontend image to server
       run: |
-        scp -v -P 2224 -o StrictHostKeyChecking=no frontend.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
+        sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no frontend.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
 
   deploy:
     needs: [backend-build, frontend-build]
@@ -118,10 +108,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up SSH
-      uses: webfactory/ssh-agent@v0.5.4
-      with:
-        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+    - name: Install sshpass
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y sshpass
 
     - name: Add known hosts
       run: |
@@ -133,10 +123,10 @@ jobs:
     - name: Deploy to server
       run: |
         # Copy docker-compose.yml to server
-        scp -v -P 2224 -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
+        sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
         
         # SSH into server and deploy
-        ssh -v -p 2224 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
+        sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -v -p 2224 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
           cd ~/app
           docker load < backend.tar
           docker load < frontend.tar
