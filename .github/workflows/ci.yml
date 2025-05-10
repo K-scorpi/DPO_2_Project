@@ -74,32 +74,12 @@ jobs:
         cache: 'npm'
         cache-dependency-path: './frontend/package-lock.json'
 
-    - name: Cache node_modules
-      uses: actions/cache@v2
-      id: node-modules-cache
-      with:
-        path: ./frontend/node_modules
-        key: ${{ runner.os }}-node-modules-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-modules-
-
     - name: Install dependencies
       working-directory: ./frontend
-      if: steps.node-modules-cache.outputs.cache-hit != 'true'
       run: npm ci
-
-    - name: Cache build
-      uses: actions/cache@v2
-      id: build-cache
-      with:
-        path: ./frontend/build
-        key: ${{ runner.os }}-build-${{ hashFiles('**/src/**', '**/public/**') }}
-        restore-keys: |
-          ${{ runner.os }}-build-
 
     - name: Build frontend
       working-directory: ./frontend
-      if: steps.build-cache.outputs.cache-hit != 'true'
       run: npm run build
 
     - name: Build frontend Docker image
