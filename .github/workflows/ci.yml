@@ -78,10 +78,10 @@ jobs:
       run: |
         sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no frontend.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
 
-  deploy:
+  local-deploy:
     needs: [backend-build, frontend-build]
     runs-on: ubuntu-latest
-    name: Deploy Locally
+    name: Deploy and Test Locally
 
     steps:
     - name: Checkout code
@@ -99,8 +99,20 @@ jobs:
       run: |
         docker-compose up -d
 
+    - name: Wait for services to be ready
+      run: |
+        sleep 30  # Give services time to start
+
+    - name: Test backend health
+      run: |
+        curl -f http://localhost:8001/health/ || exit 1
+
+    - name: Test frontend health
+      run: |
+        curl -f http://localhost:3001/ || exit 1
+
   deploy-to-server:
-    needs: [backend-build, frontend-build]
+    needs: local-deploy
     runs-on: ubuntu-latest
     name: Deploy to Production Server
 
@@ -122,8 +134,18 @@ jobs:
 
     - name: Deploy to server
       run: |
+        # Create necessary directories on server
+        sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -v -p 2224 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
+          mkdir -p ~/app/backend
+          mkdir -p ~/app/frontend
+        '
+
         # Copy docker-compose.yml to server
         sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
+        
+        # Copy backend and frontend directories
+        sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no -r ./backend/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/backend/
+        sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no -r ./frontend/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/frontend/
         
         # SSH into server and deploy
         sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -v -p 2224 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
