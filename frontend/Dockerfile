@@ -13,11 +13,5 @@ RUN npm install
 # Копируем остальные файлы проекта
 COPY . .
 
-# Сборка фронтенда
-RUN npm run build
-
-# Устанавливаем serve для запуска статических файлов
-RUN npm install -g serve
-
 # Команда для запуска фронтенда
-CMD ["serve", "-s", "build", "-l", "3001"]
+CMD ["npm", "start"]

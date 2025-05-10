@@ -13,15 +13,15 @@ RUN pip install poetry
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем файлы проекта в рабочую директорию
-COPY . /app
+# Копируем файлы проекта
+COPY . .
 
 # Устанавливаем зависимости с помощью Poetry
 RUN poetry config virtualenvs.create false \
-    && poetry install --no-interaction --no-ansi
+    && poetry install --no-interaction --no-ansi --no-root
 
 # Устанавливаем переменные окружения
 ENV PYTHONPATH=/app
 
 # Команда для запуска приложения
-CMD ["gunicorn", "--bind", "0.0.0.0:8001", "booking.wsgi:application"]
+CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8001"]

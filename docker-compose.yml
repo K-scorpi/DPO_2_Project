@@ -5,7 +5,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: gunicorn --bind 0.0.0.0:8001 my_project.wsgi:application
+    command: poetry run python manage.py runserver 0.0.0.0:8001
     volumes:
       - ./backend:/app
     ports:
@@ -13,9 +13,9 @@ services:
     environment:
       - DEBUG=1
       - SECRET_KEY=your_secret_key
-      - DATABASE_URL=postgres://user:password@db:5432/mydatabase
-    depends_on:
-      - db
+    #  - DATABASE_URL=postgres://user:password@db:5432/mydatabase
+    #depends_on:
+    #  - db
 
   frontend:
     build:
@@ -29,17 +29,19 @@ services:
     environment:
       - NODE_ENV=development
       - REACT_APP_API_URL=http://localhost:8001
+      - PORT=3001
+      - WDS_SOCKET_PORT=3001
     depends_on:
       - backend
+#
+#  db:
+#    image: postgres:13
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data/
+#    environment:
+#      - POSTGRES_DB=mydatabase
+#      - POSTGRES_USER=user
+#      - POSTGRES_PASSWORD=password
 
-  db:
-    image: postgres:13
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_DB=mydatabase
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
-
-volumes:
-  postgres_data:
+#volumes:
+#  postgres_data:
