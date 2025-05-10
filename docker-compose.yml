@@ -5,11 +5,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    command: gunicorn --bind 0.0.0.0:8000 my_project.wsgi:application
+    command: gunicorn --bind 0.0.0.0:8001 my_project.wsgi:application
     volumes:
       - ./backend:/app
     ports:
-      - "8000:8000"
+      - "8001:8001"
     environment:
       - DEBUG=1
       - SECRET_KEY=your_secret_key
@@ -25,9 +25,10 @@ services:
       - ./frontend:/app
       - /app/node_modules
     ports:
-      - "3000:3000"
+      - "3001:3001"
     environment:
       - NODE_ENV=development
+      - REACT_APP_API_URL=http://localhost:8001
     depends_on:
       - backend
 

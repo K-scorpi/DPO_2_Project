@@ -20,4 +20,4 @@ RUN npm run build
 RUN npm install -g serve
 
 # Команда для запуска фронтенда
-CMD ["serve", "-s", "build", "-l", "3000"]
+CMD ["serve", "-s", "build", "-l", "3001"]

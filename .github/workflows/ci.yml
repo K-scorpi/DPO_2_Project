@@ -32,6 +32,21 @@ jobs:
     - name: Build backend Docker image
       run: |
         docker build -t backend:latest -f ./backend/Dockerfile ./backend
+        docker save backend:latest > backend.tar
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.4
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -p 2224 -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Transfer backend image to server
+      run: |
+        scp -P 2224 backend.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -53,6 +68,21 @@ jobs:
     - name: Build frontend Docker image
       run: |
         docker build -t frontend:latest -f ./frontend/Dockerfile ./frontend
+        docker save frontend:latest > frontend.tar
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.4
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -p 2224 -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Transfer frontend image to server
+      run: |
+        scp -P 2224 frontend.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
 
   deploy:
     needs: [backend-build, frontend-build]
@@ -74,3 +104,35 @@ jobs:
     - name: Run Docker Compose
       run: |
         docker-compose up -d
+
+  deploy-to-server:
+    needs: [backend-build, frontend-build]
+    runs-on: ubuntu-latest
+    name: Deploy to Production Server
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.4
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Add known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -p 2224 -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Deploy to server
+      run: |
+        # Copy docker-compose.yml to server
+        scp -P 2224 docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
+        
+        # SSH into server and deploy
+        ssh -p 2224 ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
+          cd ~/app
+          docker load < backend.tar
+          docker load < frontend.tar
+          docker-compose up -d
+        '

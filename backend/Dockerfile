@@ -24,4 +24,4 @@ RUN poetry config virtualenvs.create false \
 ENV PYTHONPATH=/app
 
 # Команда для запуска приложения
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "booking.wsgi:application"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8001", "booking.wsgi:application"]
