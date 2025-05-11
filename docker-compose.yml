@@ -34,6 +34,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
+      - REACT_APP_API_URL=http://88.218.67.17:8001 # заменить
     depends_on:
       - backend
     networks:

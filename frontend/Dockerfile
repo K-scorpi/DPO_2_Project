@@ -8,6 +8,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY .env.production .env
 
+RUN npm cache clean --force
+
 # Устанавливаем зависимости
 RUN npm install
 
