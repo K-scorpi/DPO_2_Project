@@ -15,7 +15,10 @@ services:
       - DEBUG=1
       - SECRET_KEY=your_secret_key
     networks:
-      - appnet
+      appnet:
+        aliases:
+          - backend
+          - api
 
   frontend:
     container_name: frontend
@@ -25,18 +28,30 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - ./frontend/build:/frontend_build
     ports:
       - "3001:3001"
     environment:
-      - NODE_ENV=development
-      - REACT_APP_API_URL=http://localhost:8001
+      - NODE_ENV=production
       - PORT=3001
-      - WDS_SOCKET_PORT=3001
     depends_on:
       - backend
     networks:
-      - appnet
+      appnet:
+        aliases:
+          - frontend
+          - web
 
 networks:
   appnet:
+    name: app_network
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
+    driver_opts:
+      com.docker.network.bridge.name: app_network
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"

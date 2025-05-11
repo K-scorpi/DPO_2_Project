@@ -40,19 +40,6 @@ jobs:
     - name: Build backend Docker image
       run: |
         docker build -t backend:latest -f ./backend/Dockerfile ./backend
-        docker save backend:latest > backend.tar
-
-    - name: Add known hosts
-      run: |
-        mkdir -p ~/.ssh
-        chmod 700 ~/.ssh
-        ssh-keyscan -p 2224 -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-        chmod 600 ~/.ssh/known_hosts
-
-    - name: Transfer backend image to server
-      if: github.ref == 'refs/heads/main'
-      run: |
-        sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no backend.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
 
   frontend-build:
     runs-on: ubuntu-latest
@@ -72,6 +59,10 @@ jobs:
       with:
         node-version: '18'
 
+    - name: Create .env.production
+      run: |
+        echo "REACT_APP_API_URL=http://88.218.67.17:8001" > frontend/.env.production
+
     - name: Disable CI env for build
       run: unset CI
 
@@ -86,19 +77,6 @@ jobs:
     - name: Build frontend Docker image
       run: |
         docker build -t frontend:latest -f ./frontend/Dockerfile ./frontend
-        docker save frontend:latest > frontend.tar
-
-    - name: Add known hosts
-      run: |
-        mkdir -p ~/.ssh
-        chmod 700 ~/.ssh
-        ssh-keyscan -p 2224 -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
-        chmod 600 ~/.ssh/known_hosts
-
-    - name: Transfer frontend image to server
-      if: github.ref == 'refs/heads/main'
-      run: |
-        sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no frontend.tar ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
 
   local-deploy:
     needs: [backend-build, frontend-build]
@@ -127,9 +105,9 @@ jobs:
 
   deploy-to-server:
     needs: local-deploy
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     name: Deploy to Production Server
+    if: github.ref == 'refs/heads/main'
 
     steps:
     - name: Checkout code
@@ -149,23 +127,29 @@ jobs:
 
     - name: Deploy to server
       run: |
-        # Create necessary directories on server
-        sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -v -p 2224 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
-          mkdir -p ~/app/backend
-          mkdir -p ~/app/frontend
-        '
-
-        # Copy docker-compose.yml to server
-        sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no docker-compose.yml ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/
-        
-        # Copy backend and frontend directories
-        sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no -r ./backend/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/backend/
-        sshpass -p "${{ secrets.SERVER_PASSWORD }}" scp -v -P 2224 -o StrictHostKeyChecking=no -r ./frontend/* ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }}:~/app/frontend/
-        
         # SSH into server and deploy
         sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -v -p 2224 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
+          # Create app directory if it doesn't exist
+          mkdir -p ~/app
           cd ~/app
-          docker load < backend.tar
-          docker load < frontend.tar
-          docker-compose up -d
+          
+          # Initialize git repository if it doesn't exist
+          if [ ! -d .git ]; then
+            git init
+            git remote add origin https://github.com/K-scorpi/DPO_2_Project.git
+          fi
+          
+          # Pull latest changes
+          git fetch origin
+          git reset --hard origin/main
+          
+          # Build and deploy
+          cd backend
+          docker build -t backend:latest .
+          cd ../frontend
+          docker build -t frontend:latest .
+          cd ..
+          
+          # Start services
+          docker-compose up -d --build
         '
