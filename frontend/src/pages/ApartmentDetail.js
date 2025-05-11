@@ -7,6 +7,10 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { useToast } from '../utils/ToastContext';
 import Reviews from '../components/Reviews';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import api from '../services/api';
+import { ru } from 'date-fns/locale';
 
 const placeholderImages = [1, 2, 3].map(n => `/placeholders/${n}.jpeg`);
 
@@ -26,12 +30,22 @@ const ApartmentDetail = () => {
   try {
     user = JSON.parse(localStorage.getItem('user'));
   } catch (e) {}
+  const [busyDates, setBusyDates] = useState([]);
+  const [selectedRange, setSelectedRange] = useState([null, null]);
+  const [startDate, endDate] = selectedRange;
+
+  const fetchBusyDates = () => {
+    api.get(`/apartments/${id}/busy_dates/`).then(res => {
+      setBusyDates(res.data.busy_dates.map(date => new Date(date)));
+    });
+  };
 
   useEffect(() => {
     getApartment(id)
       .then(res => setApartment(res.data))
       .catch(() => setError('Ошибка загрузки'))
       .finally(() => setLoading(false));
+    fetchBusyDates();
   }, [id]);
 
   const handleBooking = async () => {
@@ -39,12 +53,14 @@ const ApartmentDetail = () => {
     try {
       await createBooking({
         apartment_id: id,
-        start_date: checkIn,
-        end_date: checkOut,
+        start_date: startDate ? startDate.toISOString().slice(0, 10) : checkIn,
+        end_date: endDate ? endDate.toISOString().slice(0, 10) : checkOut,
         guests: guests,
       });
       setBookingMsg('Бронирование успешно!');
       showToast('Бронирование успешно!', 'success');
+      setSelectedRange([null, null]);
+      fetchBusyDates();
     } catch (e) {
       if (e.response && e.response.status === 403) {
         window.location.href = '/login';
@@ -117,21 +133,17 @@ const ApartmentDetail = () => {
               <Typography variant="h6" sx={{ fontWeight: 700 }}>{Number(apartment.price).toLocaleString('ru-RU', { minimumFractionDigits: 2 })} руб./ночь</Typography>
             </Box>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                label="Дата заезда"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={checkIn}
-                onChange={e => setCheckIn(e.target.value)}
-                fullWidth
-              />
-              <TextField
-                label="Дата выезда"
-                type="date"
-                InputLabelProps={{ shrink: true }}
-                value={checkOut}
-                onChange={e => setCheckOut(e.target.value)}
-                fullWidth
+              <Typography variant="subtitle2" sx={{ mb: 1 }}>Календарь занятости:</Typography>
+              <DatePicker
+                selectsRange
+                startDate={startDate}
+                endDate={endDate}
+                onChange={(update) => setSelectedRange(update)}
+                excludeDates={busyDates}
+                minDate={new Date()}
+                inline
+                monthsShown={2}
+                locale={ru}
               />
               <TextField
                 label="Гостей"
@@ -146,6 +158,7 @@ const ApartmentDetail = () => {
                 variant="contained"
                 onClick={handleBooking}
                 sx={{ width: '100%', alignSelf: 'center', mt: 1 }}
+                disabled={!startDate || !endDate}
               >
                 Забронировать
               </Button>

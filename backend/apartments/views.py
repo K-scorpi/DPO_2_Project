@@ -10,6 +10,8 @@ from .serializers import (
 )
 from django.utils import timezone
 from datetime import timedelta
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 
 # Create your views here.
 
@@ -134,3 +136,16 @@ class ApartmentReviewListCreate(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         apartment_id = self.kwargs['apartment_id']
         serializer.save(guest=self.request.user, apartment_id=apartment_id)
+
+class ApartmentBusyDatesView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, apartment_id):
+        bookings = Booking.objects.filter(apartment_id=apartment_id, status='confirmed')
+        busy_dates = set()
+        for booking in bookings:
+            current = booking.check_in
+            while current <= booking.check_out:
+                busy_dates.add(current.isoformat())
+                current += timedelta(days=1)
+        return Response({'busy_dates': sorted(list(busy_dates))})

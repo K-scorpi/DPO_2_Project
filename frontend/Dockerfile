@@ -1,5 +1,5 @@
 # Build stage
-FROM node:18 as build
+FROM node:18
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
@@ -19,6 +19,7 @@ COPY . .
 # Собираем проект
 RUN npm run build
 
-# Nginx stage
-FROM nginx:alpine
-COPY --from=build /app/build /usr/share/nginx/html
+# Установим serve для раздачи build
+RUN npm install -g serve
+
+CMD ["serve", "-s", "build", "-l", "3001"]
