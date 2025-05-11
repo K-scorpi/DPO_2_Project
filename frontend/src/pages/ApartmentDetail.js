@@ -11,6 +11,8 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import api from '../services/api';
 import { ru } from 'date-fns/locale';
+import './ApartmentCalendar.css';
+import { useTheme } from '@mui/material/styles';
 
 const placeholderImages = [1, 2, 3].map(n => `/placeholders/${n}.jpeg`);
 
@@ -33,6 +35,7 @@ const ApartmentDetail = () => {
   const [busyDates, setBusyDates] = useState([]);
   const [selectedRange, setSelectedRange] = useState([null, null]);
   const [startDate, endDate] = selectedRange;
+  const theme = useTheme();
 
   const fetchBusyDates = () => {
     api.get(`/apartments/${id}/busy_dates/`).then(res => {
@@ -144,7 +147,24 @@ const ApartmentDetail = () => {
                 inline
                 monthsShown={2}
                 locale={ru}
+                calendarClassName={`custom-calendar${theme.palette.mode === 'dark' ? ' dark' : ''}`}
+                dayClassName={date =>
+                  startDate && endDate && date >= startDate && date <= endDate
+                    ? 'selected-range' : undefined
+                }
               />
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                <Typography variant="body2">
+                  {startDate && endDate
+                    ? `Вы выбрали: ${startDate.toLocaleDateString()} — ${endDate.toLocaleDateString()}`
+                    : 'Выберите диапазон дат'}
+                </Typography>
+                {startDate || endDate ? (
+                  <Button size="small" color="secondary" onClick={() => setSelectedRange([null, null])}>
+                    Сбросить
+                  </Button>
+                ) : null}
+              </Box>
               <TextField
                 label="Гостей"
                 type="number"
@@ -156,8 +176,9 @@ const ApartmentDetail = () => {
               />
               <Button
                 variant="contained"
+                color="primary"
                 onClick={handleBooking}
-                sx={{ width: '100%', alignSelf: 'center', mt: 1 }}
+                sx={{ width: '100%', alignSelf: 'center', mt: 2, fontWeight: 700, fontSize: 18, py: 1.5 }}
                 disabled={!startDate || !endDate}
               >
                 Забронировать

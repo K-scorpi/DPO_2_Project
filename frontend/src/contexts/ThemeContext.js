@@ -8,6 +8,7 @@ export const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('theme', mode);
+    document.body.classList.toggle('dark', mode === 'dark');
   }, [mode]);
 
   const theme = useMemo(() => createTheme({

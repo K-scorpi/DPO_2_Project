@@ -67,8 +67,8 @@ class ApartmentViewSet(viewsets.ModelViewSet):
         overlapping_bookings = Booking.objects.filter(
             apartment=apartment,
             status='confirmed',
-            check_in__lt=check_out,
-            check_out__gt=check_in
+            start_date__lt=check_out,
+            end_date__gt=check_in
         )
         if overlapping_bookings.exists():
             return Response(
@@ -83,8 +83,8 @@ class ApartmentViewSet(viewsets.ModelViewSet):
         booking = Booking.objects.create(
             apartment=apartment,
             guest=request.user,
-            check_in=check_in,
-            check_out=check_out,
+            start_date=check_in,
+            end_date=check_out,
             total_price=total_price
         )
 
@@ -144,8 +144,8 @@ class ApartmentBusyDatesView(APIView):
         bookings = Booking.objects.filter(apartment_id=apartment_id, status='confirmed')
         busy_dates = set()
         for booking in bookings:
-            current = booking.check_in
-            while current <= booking.check_out:
+            current = booking.start_date
+            while current <= booking.end_date:
                 busy_dates.add(current.isoformat())
                 current += timedelta(days=1)
         return Response({'busy_dates': sorted(list(busy_dates))})
