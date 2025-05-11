@@ -135,26 +135,25 @@ jobs:
         # SSH into server and deploy
         sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -v -p 2224 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
           # Create app directory if it doesn't exist
-          mkdir -p ~/app
-          cd ~/app
+          cd /opt/app
           
           # Initialize git repository if it doesn't exist
           if [ ! -d .git ]; then
-            git init
-            git remote add origin https://github.com/K-scorpi/DPO_2_Project.git
+            sudogit init
+            sudogit remote add origin https://github.com/K-scorpi/DPO_2_Project.git
           fi
           
           # Pull latest changes
-          git fetch origin
-          git reset --hard origin/main
+          sudo git fetch origin
+          sudogit reset --hard origin/main
           
           # Build and deploy
           cd backend
-          docker build -t backend:latest .
+          sudo docker build -t backend:latest .
           cd ../frontend
-          docker build -t frontend:latest .
+          sudo docker build -t frontend:latest .
           cd ..
           
           # Start services
-          docker-compose up -d --build
+          sudo docker-compose up -d --build
         '
