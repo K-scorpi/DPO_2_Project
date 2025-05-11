@@ -135,7 +135,7 @@ jobs:
         # SSH into server and deploy
         sshpass -p "${{ secrets.SERVER_PASSWORD }}" ssh -v -p 2224 -o StrictHostKeyChecking=no ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_HOST }} '
           # Create app directory if it doesn't exist
-          cd /opt/app
+          cd /opt/app/
           
           # Initialize git repository if it doesn't exist
           if [ ! -d .git ]; then
