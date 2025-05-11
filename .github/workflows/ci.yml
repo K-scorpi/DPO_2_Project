@@ -145,7 +145,7 @@ jobs:
           
           # Pull latest changes
           sudo git fetch origin
-          sudogit reset --hard origin/main
+          sudo git reset --hard origin/main
           
           # Build and deploy
           cd backend
