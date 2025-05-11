@@ -156,5 +156,5 @@ jobs:
           cd ..
           
           # Start services
-          sudo docker-compose up -d --build
+          docker-compose up -d --build
         '
